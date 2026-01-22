@@ -41,7 +41,7 @@ def main() -> None:
         "-i",
         "--input",
         type=str,
-        default="results/sbdd/softmol/main/parp1_seed44_qed_sa.csv",
+        default="results/sbdd/softmol/main/parp1_seed44.csv",
     )
     parser.add_argument(
         "-t",
