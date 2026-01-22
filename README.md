@@ -1,63 +1,98 @@
+# SoftMol: Rethinking Molecular Representation and Generation
 
-## Training Fragment Injection Module
-The lightweight fragment injection module is the only part that requires training in $f$-RAG.<br>
-We provide the [data](https://docs.google.com/uc?export=download&id=1zWM5WY0mQEFUB0xIg4D7Ba_e4oifR2i7) to train the model and evaluate the results. Download and place the `data` folder in this directory.<br>
+<div align="center">
+<!-- ![License](https://img.shields.io/badge/License-MIT-blue.svg) -->
+<!-- ![Python](https://img.shields.io/badge/Python-3.8%2B-blue) -->
+</div>
 
-To train the module from scratch, first run the following command to preprocess the data:
+This repository contains the official implementation of the paper **"SoftMol: Rethinking Molecular Representation and Generation"**.
+
+## Overview
+**SoftMol** presents a unified framework that co-designs molecular representation, model architecture, and search strategy. We introduce **soft-fragments**—a chemistry-agnostic, fixed-length chunking representation that eliminates rigid heuristic rules. To model this, we propose **SoftBD** (Soft-Fragment Block Diffusion), which combines global autoregressive conditioning with local bidirectional diffusion to ensure high-level coherence and strict chemical validity. For Structure-based Drug Design (SBDD), SoftMol integrates with **Gated MCTS** to decouple pharmacological constraints from binding affinity optimization, achieving state-of-the-art results across multiple protein targets.
+
+![Overview](image/overview.png)
+
+## Installation
+
+To set up the environment, please use the provided YAML file to create a Conda environment with all necessary dependencies.
+
 ```bash
-python preprocess.py
-```
-We provide a partially preprocessed data file `data/zinc250k_train.csv` for ease of use. To preprocess the data from scratch, delete this file before running the preprocessing.
-
-Then, run the following command to train the module:
-```bash
-python fusion/trainer/train.py \
-    --dataset data/zinc250k \
-    --output_dir ${output_dir} \
-    --per_device_train_batch_size 128 \
-    --save_strategy epoch \
-    --num_train_epochs 8 \
-    --learning_rate 1e-4
-```
-We used a single NVIDIA GeForce RTX 3090 GPU to train the module.
-
-## Running PMO Experiments (Section 4.1)
-The folder `mol_opt` contains the code to run the experiments on the practical molecular optimization (PMO) benchmark and is based on the official [benchmark codebase](https://github.com/wenhao-gao/mol_opt).<br>
-First run the following command to construct an initial fragment vocabulary:
-```bash
-python get_vocab.py pmo
+conda env create -f environment.yml
+conda activate softmol
 ```
 
-Then, run the following command to run the experiments:
-```bash
-cd exps/pmo
-python run.py -o ${oracle_name} -s ${seed}
-```
-You can adjust hyperparameters in `exps/pmo/main/f_rag/hparams.yaml`.
+## Pre-trained Weights
 
-Run the following command to evaluate the generated molecules:
-```bash
-python eval.py ${file}
-```
+To reproduce the reported results, pre-trained model weights are required.
+> **Note**: Due to the double-blind review process, the download link for the weights is temporarily withheld.
 
-## Running Docking Experiments (Section 4.2)
-The folder `dock` contains the code to run the experiments on the docking score optimization tasks.<br>
-Before running the experiments, place the trained fragment injection module `model.safetensors` under the folder `dock`.
-First run the following command to construct an initial fragment vocabulary:
-```bash
-python get_vocab.py dock
-```
+Once obtained, please place the weight files in the `./weights` directory.
 
-Then, run the following command to run the experiments:
-```bash
-cd exps/dock
-python run.py -o ${oracle_name} -s ${seed}
-```
-You can adjust hyperparameters in `exps/dock/hparams.yaml`.
+> **Recommendation**: While we provide checkpoints for multiple model scales (55M, 74M, 89M, 116M, 624M), the results reported in the paper are primarily based on **`89M-epoch6-best.ckpt`**. We recommend using this checkpoint for standard reproduction.
 
-Run the following command to evaluate the generated molecules:
+## Usage
+
+### 1. De Novo Generation
+For unconstrained molecule generation, SoftMol (SoftBD) can generate chemically valid and diverse molecules efficiently.
+
+To generate molecules:
 ```bash
-python eval.py ${file}
+python sample.py
 ```
 
+### 2. Structure-Based Drug Design (SBDD)
+SoftMol can be applied to generate ligands for specific protein targets using our gated Monte Carlo Tree Search (MCTS) framework.
 
+#### Prerequisites
+The docking utility requires executable permissions for the `qvina02` binary:
+```bash
+chmod +x gated_mcts/utils/docking/qvina02
+```
+
+#### Generation for Standard Targets
+We support generation for 5 benchmark protein targets verified in our paper: `parp1`, `jak2`, `fa7`, `5ht1b`, and `braf`.
+
+> **Protein files**: After obtaining the receptor file for a target (e.g., `parp1.pdbqt`), place it under `gated_mcts/utils/docking/` so the docking pipeline can find it.
+
+To run the generation process:
+```bash
+# Example for parp1 (default)
+python gated_mcts/run_mcts.py
+```
+
+### 3. Training
+To train a SoftBD model from scratch on your own dataset:
+
+1.  **Prepare Data**: Place your SMILES dataset in a directory (e.g., `data/SMILES`).
+2.  **Run Training**: Use the following Hydra-configured command:
+    > **Hardware Note**: We trained the 89M SoftBD model using **8 NVIDIA RTX 4090 GPUs**. You may need to adjust `loader.global_batch_size` and `loader.num_workers` based on your available hardware.
+
+```bash
+python -u main.py \
+  data.tokenizer_name_or_path=vocab_V2.txt \
+  model=small-89M algo=bd3lm \
+  model.length=72 block_size=8 \
+  loader.global_batch_size=1600 loader.eval_global_batch_size=1600 loader.num_workers=16 \
+  trainer.precision=bf16-mixed \
+  model.attn_backend=sdpa training.resample=True \
+  trainer.val_check_interval=0.1 trainer.limit_val_batches=0.1 \
+  'hydra.run.dir=${hydra:runtime.cwd}/outputs/data/SMILES/${algo.name}-${model.name}-len${model.length}-bs${block_size}/' \
+  'sampling.logdir=${hydra:run.dir}/samples' \
+  data.smiles_path=data/SMILES \
+  trainer.max_steps=1_334_000
+```
+
+## Results & Reproducibility
+
+We provide comprehensive experimental data to support our findings:
+
+-   **De Novo Generation**: Results for 10,000 molecules generated by SoftBD across 3 random seeds are available in `results/denovo/softbd`. In our experiments, using a sampling configuration of **$K_{\text{sample}}=2$, $p=0.95$, $\tau=1.0$**, SoftBD achieved **100% validity** across these samples.
+-   **SBDD Benchmark**: Generated molecules for 5 targets × 3 seeds (3,000 molecules each) for both SoftMol and SoftMol (Unconstrained) are provided in `results/sbdd/softmol/main` and `results/sbdd/softmol/unconstrained`.
+-   **Ablation Studies**: Data from 360 ablation experiments (9 variables × 4 settings × 5 targets × 2 models) are included in `results/sbdd/softmol/ablation`.
+-   **Baselines**: Reproduction results for *f*-rag, GEAM, and GenMol on SBDD tasks are also provided in `results/sbdd/baselines`.
+
+### Evaluation Script
+To evaluate the generated molecules against the SBDD metrics:
+```bash
+python eval_sbdd.py
+```
