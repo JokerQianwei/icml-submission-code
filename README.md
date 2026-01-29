@@ -1,11 +1,11 @@
-# SoftMol: Rethinking Molecular Representation and Generation
+# From Tokens to Blocks: A Block-Diffusion Perspective on Molecular Generation
 
 <div align="center">
 <!-- ![License](https://img.shields.io/badge/License-MIT-blue.svg) -->
 <!-- ![Python](https://img.shields.io/badge/Python-3.8%2B-blue) -->
 </div>
 
-This repository contains the official implementation of the paper **"SoftMol: Rethinking Molecular Representation and Generation"**.
+This repository contains the official implementation of the paper **"From Tokens to Blocks: A Block-Diffusion Perspective on Molecular Generation"**.
 
 ## Overview
 **SoftMol** presents a unified framework that co-designs molecular representation, model architecture, and search strategy. We introduce **soft-fragments**—a chemistry-agnostic, fixed-length chunking representation that eliminates rigid heuristic rules. To model this, we propose **SoftBD** (Soft-Fragment Block Diffusion), which combines global autoregressive conditioning with local bidirectional diffusion to ensure high-level coherence and strict chemical validity. For Structure-based Drug Design (SBDD), SoftMol integrates with **Gated MCTS** to decouple pharmacological constraints from binding affinity optimization, achieving state-of-the-art results across multiple protein targets.
@@ -40,7 +40,7 @@ To generate molecules:
 python sample.py
 ```
 
-### 2. Structure-Based Drug Design (SBDD)
+### 2. Target-specific molecular design (SBDD)
 SoftMol can be applied to generate ligands for specific protein targets using our gated Monte Carlo Tree Search (MCTS) framework.
 
 #### Prerequisites
