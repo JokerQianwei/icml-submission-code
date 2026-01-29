@@ -8,7 +8,7 @@
 This repository contains the official implementation of the paper **"From Tokens to Blocks: A Block-Diffusion Perspective on Molecular Generation"**.
 
 ## Overview
-**SoftMol** presents a unified framework that co-designs molecular representation, model architecture, and search strategy. We introduce **soft-fragments**—a chemistry-agnostic, fixed-length chunking representation that eliminates rigid heuristic rules. To model this, we propose **SoftBD** (Soft-Fragment Block Diffusion), which combines global autoregressive conditioning with local bidirectional diffusion to ensure high-level coherence and strict chemical validity. For Structure-based Drug Design (SBDD), SoftMol integrates with **Gated MCTS** to decouple pharmacological constraints from binding affinity optimization, achieving state-of-the-art results across multiple protein targets.
+We introduce SoftMol, a unified framework for target-aware molecular generation that co-designs representation, architecture, and search strategy to address the limitations of 1D molecular language models. SoftMol introduces Soft-Fragments, a rule-free block representation that enables diffusion-native modeling, and SoftBD, a block-diffusion model combining local bidirectional diffusion with global autoregressive generation to capture refined chemical structures. Integrated with a gated MCTS for target-specific optimization and trained on the high-quality ZINC-Curated dataset, SoftMol achieves state-of-the-art performance, delivering 100% chemical validity, a 9.7% improvement in binding affinity, and a 6.6× speedup in inference efficiency.
 
 ![Overview](image/overview.png)
 
