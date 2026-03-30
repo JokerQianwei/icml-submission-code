@@ -33,7 +33,7 @@ SoftMol achieves state-of-the-art performance on all 10 targets in this benchmar
 
 ## Top-1 Docking Score
 
-The SoftMol row is highlighted in bold.
+Best value in each target column is highlighted in bold.
 
 | Method | 6GL8 | 1UWH | 7OTE | 1KKQ | 5WFD | 7W7C | 8JJL | 7D42 | 7S1S | 6AZV |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -56,7 +56,7 @@ The SoftMol row is highlighted in bold.
 
 ## Top-10 Docking Score
 
-The SoftMol row is highlighted in bold.
+Best value in each target column is highlighted in bold.
 
 | Method | 6GL8 | 1UWH | 7OTE | 1KKQ | 5WFD | 7W7C | 8JJL | 7D42 | 7S1S | 6AZV |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -79,7 +79,7 @@ The SoftMol row is highlighted in bold.
 
 ## Top-100 Docking Score
 
-The SoftMol row is highlighted in bold.
+Best value in each target column is highlighted in bold.
 
 | Method | 6GL8 | 1UWH | 7OTE | 1KKQ | 5WFD | 7W7C | 8JJL | 7D42 | 7S1S | 6AZV |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
